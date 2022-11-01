@@ -42,10 +42,6 @@ int SearchServer::GetDocumentCount() const {
     return static_cast<int>(documents_.size());
 }
 
-int SearchServer::GetDocumentId(int index) const {
-    return documents_ids_.at(index);
-}
-
 std::tuple<std::vector<std::string>, DocumentStatus> SearchServer::MatchDocument(const std::string& raw_query, int document_id) const {
     SearchServer::Query query = SearchServer::ParseQuery(raw_query);
     std::vector<std::string> matched_words;
@@ -67,6 +63,45 @@ std::tuple<std::vector<std::string>, DocumentStatus> SearchServer::MatchDocument
         }
     }
     return { matched_words, documents_.at(document_id).status };
+}
+
+const std::vector<int>::const_iterator SearchServer::begin() const {
+    return documents_ids_.begin();
+}
+
+const std::vector<int>::const_iterator SearchServer::end() const {
+    return documents_ids_.end();
+}
+
+const std::map<std::string, double>& SearchServer::GetWordFrequencies(int document_id) const {
+    static std::map<std::string, double> word_freq;
+    if (!documents_.count(document_id)) {
+        return EMPTY_;
+    }
+
+    for (auto& [word, id_freq] : word_to_document_freqs_) {
+        auto it = id_freq.begin();
+        while (it != id_freq.end()) {
+            it = id_freq.find(document_id);
+            word_freq.insert({ word, (*it).second });
+        }
+    }
+    return word_freq;
+}
+
+void SearchServer::RemoveDocument(int document_id) {
+    if (!documents_.count(document_id)) {
+        return;
+    }
+    documents_ids_.erase(find(documents_ids_.begin(), documents_ids_.end(), document_id));
+    documents_.erase(document_id);
+    for (auto& [word, id_freq] : word_to_document_freqs_) {
+        id_freq.erase(document_id);
+        if (word_to_document_freqs_.at(word).empty()) {
+            word_to_document_freqs_.erase(word); // очень спорное решение ***********************************
+        }
+    }
+
 }
 
 // ===================== Private ===================== 

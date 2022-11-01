@@ -42,7 +42,6 @@ public:
 
     template <typename DocumentPredicate>
     std::vector<Document> FindTopDocuments(const std::string& raw_query, DocumentPredicate document_predicate) const {
-        LOG_DURATION_STREAM("FindTopDocuments", std::cout);
         Query query = ParseQuery(raw_query);
         std::vector<Document> matched_documents = FindAllDocuments(query, document_predicate);
         std::sort(matched_documents.begin(), matched_documents.end(),
@@ -63,15 +62,18 @@ public:
     std::vector<Document> FindTopDocuments(const std::string& raw_query, DocumentStatus status) const;
     std::vector<Document> FindTopDocuments(const std::string& raw_query) const;
     int GetDocumentCount() const;
-    int GetDocumentId(int index) const;
     std::tuple<std::vector<std::string>, DocumentStatus> MatchDocument(const std::string& raw_query, int document_id) const;
-
+    const std::vector<int>::const_iterator begin() const;
+    const std::vector<int>::const_iterator end() const;
+    const std::map<std::string, double>& GetWordFrequencies(int document_id) const;
+    void RemoveDocument(int document_id);
 private:
     struct DocumentData {
         int rating;
         DocumentStatus status;
     };
-
+    
+    const std::map<std::string, double> EMPTY_;
     const std::set<std::string> stop_words_;
     std::map<std::string, std::map<int, double>> word_to_document_freqs_;
     std::map<int, DocumentData> documents_;
