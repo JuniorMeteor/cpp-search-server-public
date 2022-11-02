@@ -93,15 +93,19 @@ void SearchServer::RemoveDocument(int document_id) {
     if (!documents_.count(document_id)) {
         return;
     }
-    documents_ids_.erase(find(documents_ids_.begin(), documents_ids_.end(), document_id));
-    documents_.erase(document_id);
+    std::vector<std::string> words_to_remove;
+    words_to_remove.reserve(documents_ids_.size());
     for (auto& [word, id_freq] : word_to_document_freqs_) {
         id_freq.erase(document_id);
         if (word_to_document_freqs_.at(word).empty()) {
-            word_to_document_freqs_.erase(word); // очень спорное решение ***********************************
+            words_to_remove.push_back(word);
         }
     }
-
+    for (auto& word : words_to_remove) {
+        word_to_document_freqs_.erase(word);
+    }
+    documents_ids_.erase(find(documents_ids_.begin(), documents_ids_.end(), document_id));
+    documents_.erase(document_id);
 }
 
 // ===================== Private ===================== 
