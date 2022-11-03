@@ -1,16 +1,10 @@
-#include "search_server.h"
 #include "remove_duplicates.h"
-
-#include <string>
-#include <map>
-#include <set>
-#include <iostream>
 
 void RemoveDuplicates(SearchServer& search_server) {
     // set of words which corresponds to some document
     std::map<std::set<std::string>, int> words_in_docs;
     // list of duplicates
-    vector<int> duplicates_to_remove;
+    std::vector<int> duplicates_to_remove;
     // optimization
     duplicates_to_remove.reserve(search_server.GetDocumentCount());
     // checking each doc
@@ -37,6 +31,3 @@ void RemoveDuplicates(SearchServer& search_server) {
         search_server.RemoveDocument(duplicate);
     }
 }
-
-//std::set<std::string> MakeUniqueNonEmptyStrings(const StringContainer& strings)
-//const std::map<std::string, double>& SearchServer::GetWordFrequencies(int document_id) const

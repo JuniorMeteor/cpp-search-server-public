@@ -7,3 +7,11 @@ std::ostream& operator<<(std::ostream& os, const Document& doc) {
         << " }";
     return os;
 }
+
+void PrintDocument(const Document& document) {
+    std::cout << "{ "
+        << "document_id = " << document.id << ", "
+        << "relevance = " << document.relevance << ", "
+        << "rating = " << document.rating
+        << " }" << std::endl;
+}

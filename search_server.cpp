@@ -75,14 +75,14 @@ const std::vector<int>::const_iterator SearchServer::end() const {
 
 const std::map<std::string, double>& SearchServer::GetWordFrequencies(int document_id) const {
     static std::map<std::string, double> word_freq;
+    word_freq.clear();
     if (!documents_.count(document_id)) {
-        return EMPTY_;
+        return word_freq;
     }
 
     for (auto& [word, id_freq] : word_to_document_freqs_) {
-        auto it = id_freq.begin();
-        while (it != id_freq.end()) {
-            it = id_freq.find(document_id);
+        auto it = id_freq.find(document_id);
+        if (it != id_freq.end()) {
             word_freq.insert({ word, (*it).second });
         }
     }

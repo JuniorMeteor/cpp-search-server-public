@@ -5,24 +5,11 @@
 #include "paginator.h"
 #include "request_queue.h"
 #include "remove_duplicates.h"
+#include "test_example_functions.h"
 
 using namespace std;
 
-void PrintDocument(const Document& document) {
-    std::cout << "{ "
-        << "document_id = " << document.id << ", "
-        << "relevance = " << document.relevance << ", "
-        << "rating = " << document.rating
-        << " }" << std::endl;
-}
-
-void AddDocument(SearchServer& search_server, const  int document_id, const string document_content,
-                 const  DocumentStatus status, const  vector<int>& ratings) {
-    search_server.AddDocument(document_id, document_content, status, ratings);
-}
-
 int main() {
-
     SearchServer search_server("and with"s);
 
     AddDocument(search_server, 1, "funny pet and nasty rat"s, DocumentStatus::ACTUAL, { 7, 2, 7 });
