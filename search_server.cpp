@@ -1,5 +1,4 @@
 #include "search_server.h"
-#include "read_input_functions.h"
 
 // ===================== Public ===================== 
 
@@ -22,10 +21,11 @@ void SearchServer::AddDocument(int document_id, const std::string& document, Doc
     }
     const double inv_word_count = 1.0 / words.size();
     for (const std::string& word : words) {
-        word_to_document_freqs_[word][document_id] += inv_word_count;
+        word_to_id_freq_[word][document_id] += inv_word_count;
+        id_to_word_freq_[document_id][word] += inv_word_count;
     }
     documents_.emplace(document_id, SearchServer::DocumentData{ SearchServer::ComputeAverageRating(ratings), status });
-    documents_ids_.push_back(document_id);
+    documents_ids_.insert(document_id);
 }
 
 std::vector<Document> SearchServer::FindTopDocuments(const std::string& raw_query, DocumentStatus status) const {
@@ -46,18 +46,18 @@ std::tuple<std::vector<std::string>, DocumentStatus> SearchServer::MatchDocument
     SearchServer::Query query = SearchServer::ParseQuery(raw_query);
     std::vector<std::string> matched_words;
     for (const std::string& word : query.plus_words) {
-        if (word_to_document_freqs_.count(word) == 0) {
+        if (word_to_id_freq_.count(word) == 0) {
             continue;
         }
-        if (word_to_document_freqs_.at(word).count(document_id)) {
+        if (word_to_id_freq_.at(word).count(document_id)) {
             matched_words.push_back(word);
         }
     }
     for (const std::string& word : query.minus_words) {
-        if (word_to_document_freqs_.count(word) == 0) {
+        if (word_to_id_freq_.count(word) == 0) {
             continue;
         }
-        if (word_to_document_freqs_.at(word).count(document_id)) {
+        if (word_to_id_freq_.at(word).count(document_id)) {
             matched_words.clear();
             break;
         }
@@ -65,45 +65,33 @@ std::tuple<std::vector<std::string>, DocumentStatus> SearchServer::MatchDocument
     return { matched_words, documents_.at(document_id).status };
 }
 
-const std::vector<int>::const_iterator SearchServer::begin() const {
+const std::set<int>::const_iterator SearchServer::begin() const {
     return documents_ids_.begin();
 }
 
-const std::vector<int>::const_iterator SearchServer::end() const {
+const std::set<int>::const_iterator SearchServer::end() const {
     return documents_ids_.end();
 }
 
 const std::map<std::string, double>& SearchServer::GetWordFrequencies(int document_id) const {
-    static std::map<std::string, double> word_freq;
-    word_freq.clear();
-    if (!documents_.count(document_id)) {
-        return word_freq;
+    static const std::map<std::string, double> EMPTY;
+    if (documents_.count(document_id) == 0) {
+        return EMPTY;
     }
-
-    for (auto& [word, id_freq] : word_to_document_freqs_) {
-        auto it = id_freq.find(document_id);
-        if (it != id_freq.end()) {
-            word_freq.insert({ word, (*it).second });
-        }
-    }
-    return word_freq;
+    return id_to_word_freq_.at(document_id);
 }
 
 void SearchServer::RemoveDocument(int document_id) {
-    if (!documents_.count(document_id)) {
+    if (documents_.count(document_id) == 0) {
         return;
     }
     std::vector<std::string> words_to_remove;
-    words_to_remove.reserve(documents_ids_.size());
-    for (auto& [word, id_freq] : word_to_document_freqs_) {
-        id_freq.erase(document_id);
-        if (word_to_document_freqs_.at(word).empty()) {
-            words_to_remove.push_back(word);
-        }
+    words_to_remove.reserve(id_to_word_freq_.at(document_id).size());
+
+    for (const auto& [word, _] : id_to_word_freq_.at(document_id)) {
+        word_to_id_freq_[word].erase(document_id);
     }
-    for (auto& word : words_to_remove) {
-        word_to_document_freqs_.erase(word);
-    }
+    id_to_word_freq_.erase(document_id);
     documents_ids_.erase(find(documents_ids_.begin(), documents_ids_.end(), document_id));
     documents_.erase(document_id);
 }
@@ -162,5 +150,5 @@ SearchServer::Query SearchServer::ParseQuery(const std::string& text) const {
 }
 
 double SearchServer::ComputeWordInverseDocumentFreq(const std::string& word) const {
-    return log(SearchServer::GetDocumentCount() * 1.0 / word_to_document_freqs_.at(word).size());
+    return log(SearchServer::GetDocumentCount() * 1.0 / word_to_id_freq_.at(word).size());
 }
