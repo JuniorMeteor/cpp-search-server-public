@@ -33,7 +33,8 @@ public:
         : SearchServer(SplitIntoWords(stop_words_text)) {
     }
     
-    void AddDocument(int document_id, const std::string& document, DocumentStatus status, const std::vector<int>& ratings);
+    void AddDocument(int document_id, const std::string& document, DocumentStatus status,
+        const std::vector<int>& ratings);
     static bool IsValidWord(const std::string& word);
     int GetDocumentCount() const;
         
