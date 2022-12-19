@@ -1,14 +1,16 @@
-#include "process_queries.h"
 #include "search_server.h"
+#include "process_queries.h"
 
 #include <iostream>
 #include <string>
 #include <vector>
 
-using namespace std;
+//#include "benchmark_sprint8_lesson9_1.h"
 
 int main() {
+    using namespace std;
     SearchServer search_server("and with"s);
+
     int id = 0;
     for (
         const string& text : {
@@ -21,13 +23,36 @@ int main() {
         ) {
         search_server.AddDocument(++id, text, DocumentStatus::ACTUAL, { 1, 2 });
     }
-    const vector<string> queries = {
-        "nasty rat -not"s,
-        "not very funny nasty pet"s,
-        "curly hair"s
-    };
-    for (const Document& document : ProcessQueriesJoined(search_server, queries)) {
-        cout << "Document "s << document.id << " matched with relevance "s << document.relevance << endl;
+
+    const string query = " -not"s;
+
+    {
+        const auto [words, status] = search_server.MatchDocument(execution::par, query, 1);
+        cout << "Query: " << query << endl;
+        cout << "Words match in Document 1: " << words.size() << endl;
+        for (const string& word : words) {
+            cout << word << " ";
+        }
+        cout << endl;
     }
+
+    //{
+    //    const auto [words, status] = search_server.MatchDocument(execution::par, query, 2);
+    //    cout << words.size() << " words for document 2"s << endl;
+    //    // 2 words for document 2
+    //}
+
+    //{
+    //    const auto [words, status] = search_server.MatchDocument(execution::seq, query, 2);
+    //    cout << words.size() << " words for document 2"s << endl;
+    //    // 2 words for document 2
+    //}
+
+    //{
+    //    const auto [words, status] = search_server.MatchDocument(execution::par, query, 3);
+    //    cout << words.size() << " words for document 3"s << endl;
+    //    // 0 words for document 3
+    //}
+
     return 0;
 }

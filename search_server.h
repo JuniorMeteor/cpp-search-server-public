@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <numeric>
 #include <cmath>
+#include <execution>
 
 #include "document.h"
 #include "string_processing.h"
@@ -37,19 +38,61 @@ public:
         const std::vector<int>& ratings);
     static bool IsValidWord(const std::string& word);
     int GetDocumentCount() const;
-        
+
     template <typename DocumentPredicate>
     std::vector<Document> FindTopDocuments(const std::string& raw_query, DocumentPredicate document_predicate) const;
     std::vector<Document> FindTopDocuments(const std::string& raw_query, DocumentStatus status) const;
     std::vector<Document> FindTopDocuments(const std::string& raw_query) const;
     
-    std::tuple<std::vector<std::string>, DocumentStatus> MatchDocument(const std::string& raw_query, int document_id) const;
-    
+    std::tuple<std::vector<std::string>, DocumentStatus> MatchDocument(const std::string& raw_query,
+        int document_id) const;
+    std::tuple<std::vector<std::string>, DocumentStatus> MatchDocument(std::execution::parallel_policy,
+        const std::string& raw_query, int document_id) const;
+    std::tuple<std::vector<std::string>, DocumentStatus> MatchDocument(std::execution::sequenced_policy,
+        const std::string& raw_query, int document_id) const
+    {
+        return MatchDocument(raw_query, document_id);
+    }
+
     const std::set<int>::const_iterator begin() const;
     const std::set<int>::const_iterator end() const;
     
     const std::map<std::string, double>& GetWordFrequencies(int document_id) const;
     void RemoveDocument(int document_id);
+
+    // no check for ExecutionPolicy input class!!!
+    template <class ExecutionPolicy>
+    void RemoveDocument(ExecutionPolicy&& exe_policy, int document_id) {
+        if (documents_.count(document_id) == 0) {
+            return;
+        }
+        std::vector<const std::string*> ptr_words_to_remove;
+        ptr_words_to_remove.reserve(id_to_word_freq_.at(document_id).size());
+
+        std::transform(
+            exe_policy,
+            id_to_word_freq_[document_id].begin(),
+            id_to_word_freq_[document_id].end(),
+            ptr_words_to_remove.begin(),
+            [](std::pair<const std::string, double>& element) {
+                return &element.first;
+            }
+        );
+
+        std::for_each(
+            exe_policy,
+            ptr_words_to_remove.begin(),
+            ptr_words_to_remove.end(),
+            [this, document_id](const std::string* word) {
+                word_to_id_freq_[*word].erase(document_id);
+                return;
+            }
+        );
+
+        id_to_word_freq_.erase(document_id);
+        documents_ids_.erase(std::find(exe_policy, documents_ids_.begin(), documents_ids_.end(), document_id));
+        documents_.erase(document_id);
+    }
 
 private:
     struct DocumentData {
@@ -78,10 +121,11 @@ private:
     QueryWord ParseQueryWord(std::string text) const;
 
     struct Query {
-        std::set<std::string> plus_words;
-        std::set<std::string> minus_words;
+        std::vector<std::string> plus_words;
+        std::vector<std::string> minus_words;
     };
-    Query ParseQuery(const std::string& text) const;
+    Query ParseQuery(std::execution::parallel_policy,  const std::string& text) const;
+    Query ParseQuery(std::execution::sequenced_policy, const std::string& text) const;
 
     double ComputeWordInverseDocumentFreq(const std::string& word) const;
     template <typename DocumentPredicate>
@@ -90,7 +134,7 @@ private:
 
 template <typename DocumentPredicate>
 std::vector<Document> SearchServer::FindTopDocuments(const std::string & raw_query, DocumentPredicate document_predicate) const {
-    Query query = ParseQuery(raw_query);
+    Query query = ParseQuery(std::execution::seq, raw_query);
     std::vector<Document> matched_documents = FindAllDocuments(query, document_predicate);
     std::sort(matched_documents.begin(), matched_documents.end(),
         [](const Document& lhs, const Document& rhs) {
