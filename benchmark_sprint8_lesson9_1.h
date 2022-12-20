@@ -74,7 +74,7 @@ int main() {
     mt19937 generator;
 
     const auto dictionary = GenerateDictionary(generator, 1000, 10);
-    const auto documents = GenerateQueries(generator, dictionary, 1'000, 70);
+    const auto documents = GenerateQueries(generator, dictionary, 10'000, 70);
 
     const string query = GenerateQuery(generator, dictionary, 500, 0.1);
 

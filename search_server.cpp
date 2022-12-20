@@ -36,13 +36,13 @@ void SearchServer::AddDocument(int document_id, const std::string_view& document
     documents_ids_.insert(document_id);
 }
 
-std::vector<Document> SearchServer::FindTopDocuments(const std::string& raw_query, DocumentStatus status) const {
+std::vector<Document> SearchServer::FindTopDocuments(const std::string_view& raw_query, DocumentStatus status) const {
     return SearchServer::FindTopDocuments(raw_query,
         [status](int document_id, DocumentStatus document_status, int rating)
         { return document_status == status; });
 }
 
-std::vector<Document> SearchServer::FindTopDocuments(const std::string& raw_query) const {
+std::vector<Document> SearchServer::FindTopDocuments(const std::string_view& raw_query) const {
     return SearchServer::FindTopDocuments(raw_query, DocumentStatus::ACTUAL);
 }
 
@@ -53,6 +53,15 @@ int SearchServer::GetDocumentCount() const {
 std::tuple<std::vector<std::string_view>, DocumentStatus> SearchServer::MatchDocument(const std::string_view& raw_query, int document_id) const {
     SearchServer::Query query = SearchServer::ParseQuery(std::execution::seq, raw_query);
     std::vector<std::string_view> matched_words;
+    for (const std::string_view& word : query.minus_words) {
+        if (word_to_id_freq_.count(word) == 0) {
+            continue;
+        }
+        if (word_to_id_freq_.at(word).count(document_id)) {
+            matched_words.clear();
+            return { {}, documents_.at(document_id).status };
+        }
+    }
     for (const std::string_view& word : query.plus_words) {
         if (word_to_id_freq_.count(word) == 0) {
             continue;
@@ -61,16 +70,13 @@ std::tuple<std::vector<std::string_view>, DocumentStatus> SearchServer::MatchDoc
             matched_words.push_back(word);
         }
     }
-    for (const std::string_view& word : query.minus_words) {
-        if (word_to_id_freq_.count(word) == 0) {
-            continue;
-        }
-        if (word_to_id_freq_.at(word).count(document_id)) {
-            matched_words.clear();
-            break;
-        }
-    }
     return { matched_words, documents_.at(document_id).status };
+}
+
+std::tuple<std::vector<std::string_view>, DocumentStatus> SearchServer::MatchDocument(std::execution::sequenced_policy,
+    const std::string_view& raw_query, int document_id) const
+{
+    return MatchDocument(raw_query, document_id);
 }
 
 std::tuple<std::vector<std::string_view>, DocumentStatus> SearchServer::MatchDocument(std::execution::parallel_policy,
