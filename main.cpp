@@ -24,35 +24,19 @@ int main() {
         search_server.AddDocument(++id, text, DocumentStatus::ACTUAL, { 1, 2 });
     }
 
-    const string query = " -not"s;
+    const string query = "funny curly rat -not"s;
 
     {
         const auto [words, status] = search_server.MatchDocument(execution::par, query, 1);
         cout << "Query: " << query << endl;
         cout << "Words match in Document 1: " << words.size() << endl;
-        for (const string& word : words) {
-            cout << word << " ";
+        auto docs = search_server.FindTopDocuments(query);
+        cout << "Top documents found: " << docs.size() << endl;
+        for (auto& doc : docs) {
+            cout << "ID: " << doc.id << "\tRationg: " << doc.rating << "\tRelevance: " << doc.relevance << endl;
         }
-        cout << endl;
+
     }
-
-    //{
-    //    const auto [words, status] = search_server.MatchDocument(execution::par, query, 2);
-    //    cout << words.size() << " words for document 2"s << endl;
-    //    // 2 words for document 2
-    //}
-
-    //{
-    //    const auto [words, status] = search_server.MatchDocument(execution::seq, query, 2);
-    //    cout << words.size() << " words for document 2"s << endl;
-    //    // 2 words for document 2
-    //}
-
-    //{
-    //    const auto [words, status] = search_server.MatchDocument(execution::par, query, 3);
-    //    cout << words.size() << " words for document 3"s << endl;
-    //    // 0 words for document 3
-    //}
 
     return 0;
 }
