@@ -33,7 +33,7 @@ public:
     
     explicit SearchServer(const std::string_view stop_words_text)
         : SearchServer(SplitIntoWords(std::string(stop_words_text))) {
-    } // some shit
+    }
 
     explicit SearchServer(const std::string stop_words_text)
         : SearchServer(SplitIntoWords(stop_words_text)) {
@@ -61,8 +61,7 @@ public:
     
     const std::map<std::string_view, double>& GetWordFrequencies(int document_id) const;
     void RemoveDocument(int document_id);
-
-    // no check for ExecutionPolicy input class!!!
+    
     template <class ExecutionPolicy>
     void RemoveDocument(ExecutionPolicy&& exe_policy, int document_id) {
         if (documents_.count(document_id) == 0) {
