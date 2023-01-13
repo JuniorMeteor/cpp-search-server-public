@@ -44,7 +44,7 @@ public:
     static bool IsValidWord(const std::string_view& word);
     int GetDocumentCount() const;
 
-    template <typename DocumentPredicate>
+    template <typename ExecutionPolicy, typename DocumentPredicate>
     std::vector<Document> FindTopDocuments(const std::string_view& raw_query, DocumentPredicate document_predicate) const;
     std::vector<Document> FindTopDocuments(const std::string_view& raw_query, DocumentStatus status) const;
     std::vector<Document> FindTopDocuments(const std::string_view& raw_query) const;
