@@ -1,9 +1,8 @@
 #pragma once
-
-#include <string>
-#include <mutex>
-#include <vector>
 #include <map>
+#include <mutex>
+#include <string>
+#include <vector>
 
 template <typename Key, typename Value>
 class ConcurrentMap {

@@ -1,7 +1,6 @@
 #pragma once
-#include <vector>
 #include <string>
-
+#include <vector>
 #include "search_server.h"
 
 void AddDocument(SearchServer& search_server, const  int document_id, const std::string document_content,

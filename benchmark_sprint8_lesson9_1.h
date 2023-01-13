@@ -1,11 +1,10 @@
-#include "search_server.h"
-
+#pragma once
 #include <execution>
 #include <iostream>
 #include <random>
 #include <string>
 #include <vector>
-
+#include "search_server.h"
 #include "log_duration.h"
 
 using namespace std;

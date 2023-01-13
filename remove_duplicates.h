@@ -1,9 +1,8 @@
 #pragma once
-#include <string>
+#include <iostream>
 #include <map>
 #include <set>
-#include <iostream>
-
+#include <string>
 #include "search_server.h"
 
 void RemoveDuplicates(SearchServer& search_server);

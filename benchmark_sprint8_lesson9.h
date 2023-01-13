@@ -1,13 +1,10 @@
 #pragma once
-
-#include "search_server.h"
-
 #include <execution>
 #include <iostream>
 #include <random>
 #include <string>
 #include <vector>
-
+#include "search_server.h"
 #include "log_duration.h"
 
 // benchmark does NOT WORK properly

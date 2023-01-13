@@ -1,20 +1,19 @@
 #pragma once
-#include <string>
-#include <string_view>
-#include <vector>
-#include <tuple>
-#include <set>
-#include <map>
-#include <stdexcept>
 #include <algorithm>
-#include <numeric>
 #include <cmath>
 #include <execution>
-
+#include <map>
+#include <numeric>
+#include <set>
+#include <stdexcept>
+#include <string>
+#include <string_view>
+#include <tuple>
+#include <vector>
 #include "document.h"
-#include "string_processing.h"
 #include "log_duration.h"
 #include "read_input_functions.h"
+#include "string_processing.h"
 
 const int MAX_RESULT_DOCUMENT_COUNT = 5;
 const double EPSILON = 1e-6;
@@ -44,7 +43,7 @@ public:
     static bool IsValidWord(const std::string_view& word);
     int GetDocumentCount() const;
 
-    template <typename ExecutionPolicy, typename DocumentPredicate>
+    template <typename DocumentPredicate>
     std::vector<Document> FindTopDocuments(const std::string_view& raw_query, DocumentPredicate document_predicate) const;
     std::vector<Document> FindTopDocuments(const std::string_view& raw_query, DocumentStatus status) const;
     std::vector<Document> FindTopDocuments(const std::string_view& raw_query) const;
