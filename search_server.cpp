@@ -17,7 +17,7 @@ void SearchServer::AddDocument(int document_id, const std::string_view& document
     }
 
     documents_.emplace(document_id,
-        SearchServer::DocumentData{ SearchServer::ComputeAverageRating(ratings), status, std::string(document)});
+        SearchServer::DocumentData{ SearchServer::ComputeAverageRating(ratings), status, std::string(document) });
 
     const std::vector<std::string_view> words = SearchServer::SplitIntoWordsNoStop(documents_.at(document_id).text);
     for (const std::string_view& word : words) {
@@ -34,6 +34,16 @@ void SearchServer::AddDocument(int document_id, const std::string_view& document
     }
 
     documents_ids_.insert(document_id);
+}
+
+std::vector<Document> SearchServer::FindTopDocuments(const std::string_view& raw_query, DocumentStatus status) const {
+    return SearchServer::FindTopDocuments(raw_query,
+        [status](int document_id, DocumentStatus document_status, int rating)
+        { return document_status == status; });
+}
+
+std::vector<Document> SearchServer::FindTopDocuments(const std::string_view& raw_query) const {
+    return SearchServer::FindTopDocuments(raw_query, DocumentStatus::ACTUAL);
 }
 
 int SearchServer::GetDocumentCount() const {
@@ -107,7 +117,7 @@ std::tuple<std::vector<std::string_view>, DocumentStatus> SearchServer::MatchDoc
                 [](const std::string_view& lhs, const std::string_view& rhs) {
                     return lhs == rhs || rhs.empty();
                 }
-                ),
+            ),
             matched_words.end());
         if (!matched_words.empty() && matched_words.front().empty()) {
             matched_words.erase(matched_words.begin());
@@ -180,8 +190,8 @@ SearchServer::Query SearchServer::ParseQuery(std::execution::parallel_policy, co
         SearchServer::QueryWord query_word = SearchServer::ParseQueryWord(word);
         if (!query_word.is_stop && !query_word.data.empty()) {
             query_word.is_minus
-            ? query.minus_words.push_back(query_word.data)
-            : query.plus_words.push_back(query_word.data);
+                ? query.minus_words.push_back(query_word.data)
+                : query.plus_words.push_back(query_word.data);
         }
     }
     return query;

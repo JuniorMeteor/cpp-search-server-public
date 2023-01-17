@@ -1,5 +1,7 @@
 #pragma once
+
 #include <vector>
+
 #include "document.h"
 
 // contains documents for a single page

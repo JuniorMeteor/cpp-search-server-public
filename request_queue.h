@@ -1,7 +1,8 @@
 #pragma once
-#include <string>
 #include <vector>
+#include <string>
 #include <queue>
+
 #include "document.h"
 #include "search_server.h"
 
