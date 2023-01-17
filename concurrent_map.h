@@ -4,13 +4,11 @@
 #include <string>
 #include <vector>
 
-using namespace std::string_literals;
-
 template <typename Key, typename Value>
 class ConcurrentMap {
 
 public:
-    static_assert(std::is_integral_v<Key>, "ConcurrentMap supports only integer keys"s);
+    static_assert(std::is_integral_v<Key>, "ConcurrentMap supports only integer keys");
 
     struct Access {
         std::lock_guard<std::mutex> guard;
@@ -35,6 +33,12 @@ public:
         }
         return result;
     }
+
+    //void Erase(const Key& key) {
+    //    uint64_t bucket = key % size_;
+    //    std::lock_guard guard(vec_mutex_[bucket]);
+    //    vec_bucket_[bucket].erase(key);
+    //}
 
 private:
     std::vector<std::mutex> vec_mutex_;

@@ -13,7 +13,7 @@
 #include <tuple>
 #include <type_traits>
 #include <vector>
-#include "concurent_map.h"
+#include "concurrent_map.h"
 #include "document.h"
 #include "log_duration.h"
 #include "read_input_functions.h"
@@ -53,6 +53,19 @@ public:
     std::vector<Document> FindTopDocuments(const ExecutionPolicy& policy, const std::string_view& raw_query, DocumentStatus status) const;
     template <typename ExecutionPolicy>
     std::vector<Document> FindTopDocuments(const ExecutionPolicy& policy, const std::string_view& raw_query) const;
+
+    template <typename DocumentPredicate>
+    std::vector<Document> FindTopDocuments(const std::string_view& raw_query, DocumentPredicate document_predicate) const {
+        return SearchServer::FindTopDocuments(std::execution::seq, raw_query, document_predicate);
+    }
+
+    std::vector<Document> FindTopDocuments(const std::string_view& raw_query, DocumentStatus status) const {
+        return SearchServer::FindTopDocuments(std::execution::seq, raw_query, status);
+    }
+
+    std::vector<Document> FindTopDocuments(const std::string_view& raw_query) const {
+        return SearchServer::FindTopDocuments(std::execution::seq, raw_query);
+    }
     
     std::tuple<std::vector<std::string_view>, DocumentStatus> MatchDocument(const std::string_view& raw_query,
         int document_id) const;
@@ -107,6 +120,7 @@ private:
         std::string text;
     };
     
+    // stop words are excluded from document words account (such as "and", "or", "not", etc.)
     const std::set<std::string, std::less<>> stop_words_;
 
     std::map<std::string_view, std::map<int, double>> word_to_id_freq_;
@@ -127,6 +141,7 @@ private:
     };
     QueryWord ParseQueryWord(std::string_view text) const;
 
+    // documents, which contains minus words, will not be shown in search results
     struct Query {
         std::vector<std::string_view> plus_words;
         std::vector<std::string_view> minus_words;
@@ -178,11 +193,11 @@ std::vector<Document> SearchServer::FindTopDocuments(const ExecutionPolicy& poli
 
 template <typename ExecutionPolicy, typename DocumentPredicate>
 std::vector<Document> SearchServer::FindAllDocuments(const ExecutionPolicy& policy, const Query& query, DocumentPredicate document_predicate) const {
-    const size_t BUCKET_COUNT = 8;
+    const size_t BUCKET_COUNT = 400;
     ConcurrentMap<int, double> document_to_relevance(BUCKET_COUNT);
 
     const auto plus_words_func =
-        [&](const std::string_view word) {
+        [this, &document_predicate, &document_to_relevance](const std::string_view word) {
         if (word_to_id_freq_.count(word) != 0) {
             const double inverse_document_freq = ComputeWordInverseDocumentFreq(word);
             for (const auto [document_id, term_freq] : word_to_id_freq_.at(word)) {
@@ -193,7 +208,7 @@ std::vector<Document> SearchServer::FindAllDocuments(const ExecutionPolicy& poli
             }
         }
     };
-    ForEach(policy, query.plus_words, plus_words_func);
+    std::for_each(policy, query.plus_words.begin(), query.plus_words.end(), plus_words_func);
 
     auto doc_to_rel = document_to_relevance.BuildOrdinaryMap();
     const auto minus_words_func =
@@ -204,12 +219,11 @@ std::vector<Document> SearchServer::FindAllDocuments(const ExecutionPolicy& poli
                 }
             }
     };
-    ForEach(policy, query.minus_words, minus_words_func);
+    std::for_each(policy, query.minus_words.begin(), query.minus_words.end(), minus_words_func);
 
     std::vector<Document> matched_documents;
     for (const auto [document_id, relevance] : doc_to_rel) {
-        matched_documents.push_back(
-            { document_id, relevance, documents_.at(document_id).rating });
+        matched_documents.push_back({ document_id, relevance, documents_.at(document_id).rating });
     }
     return matched_documents;
 }
@@ -217,33 +231,33 @@ std::vector<Document> SearchServer::FindAllDocuments(const ExecutionPolicy& poli
 
 //=================== ADDITIONAL FUNCTIONS ===================
 
-template <typename ExecutionPolicy, typename ForwardRange, typename Function>
-void ForEach(const ExecutionPolicy& policy, ForwardRange& range, Function function) {
-    if constexpr (
-        std::is_same_v<ExecutionPolicy, std::execution::sequenced_policy>
-        || std::is_same_v<typename std::iterator_traits<typename ForwardRange::iterator>::iterator_category,
-        std::random_access_iterator_tag>
-        ) {
-            std::for_each(policy, range.begin(), range.end(), function);
-        }
-    else {
-        static constexpr int PART_COUNT = 4;
-        const auto part_length = size(range) / PART_COUNT;
-        auto part_begin = range.begin();
-        auto part_end = next(part_begin, part_length);
-
-        std::vector<std::future<void>> futures;
-        for (int i = 0;
-            i < PART_COUNT;
-            ++i,
-            part_begin = part_end,
-            part_end = (i == PART_COUNT - 1
-                ? range.end()
-                : std::next(part_begin, part_length))
-            ) {
-            futures.push_back(async([function, part_begin, part_end] {
-                std::for_each(part_begin, part_end, function);
-                }));
-        }
-    }
-}
+//template <typename ExecutionPolicy, typename ForwardRange, typename Function>
+//void ForEach(const ExecutionPolicy& policy, ForwardRange& range, Function function) {
+//    if constexpr (
+//        std::is_same_v<ExecutionPolicy, std::execution::sequenced_policy>
+//        || std::is_same_v<typename std::iterator_traits<typename ForwardRange::iterator>::iterator_category,
+//        std::random_access_iterator_tag>
+//        ) {
+//            std::for_each(policy, range.begin(), range.end(), function);
+//        }
+//    else {
+//        static constexpr int PART_COUNT = 4;
+//        const auto part_length = size(range) / PART_COUNT;
+//        auto part_begin = range.begin();
+//        auto part_end = next(part_begin, part_length);
+//
+//        std::vector<std::future<void>> futures;
+//        for (int i = 0;
+//            i < PART_COUNT;
+//            ++i,
+//            part_begin = part_end,
+//            part_end = (i == PART_COUNT - 1
+//                ? range.end()
+//                : std::next(part_begin, part_length))
+//            ) {
+//            futures.push_back(async([function, part_begin, part_end] {
+//                std::for_each(part_begin, part_end, function);
+//                }));
+//        }
+//    }
+//}
