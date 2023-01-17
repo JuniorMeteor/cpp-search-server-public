@@ -74,13 +74,7 @@
     <ClInclude Include="process_queries.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="benchmark_sprint8_lesson8.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="benchmark_sprint8_lesson9.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="benchmark_sprint8_lesson9_1.h">
+    <ClInclude Include="benchmark_last_lesson.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
     <ClInclude Include="concurent_map.h">

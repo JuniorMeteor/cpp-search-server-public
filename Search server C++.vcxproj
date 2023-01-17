@@ -139,9 +139,7 @@
     <ClCompile Include="test_example_functions.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="benchmark_sprint8_lesson8.h" />
-    <ClInclude Include="benchmark_sprint8_lesson9.h" />
-    <ClInclude Include="benchmark_sprint8_lesson9_1.h" />
+    <ClInclude Include="benchmark_last_lesson.h" />
     <ClInclude Include="concurent_map.h" />
     <ClInclude Include="document.h" />
     <ClInclude Include="log_duration.h" />
