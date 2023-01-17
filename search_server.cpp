@@ -171,6 +171,7 @@ SearchServer::QueryWord SearchServer::ParseQueryWord(std::string_view text) cons
     }
 }
 
+// do not use! it works wrong !!!
 SearchServer::Query SearchServer::ParseQuery(std::execution::parallel_policy, const std::string_view& text) const {
     SearchServer::Query query;
     if (text.empty()) {

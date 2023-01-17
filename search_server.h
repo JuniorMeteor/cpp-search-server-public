@@ -158,7 +158,7 @@ template <typename ExecutionPolicy, typename DocumentPredicate>
 std::vector<Document> SearchServer::FindTopDocuments(const ExecutionPolicy& policy, const std::string_view& raw_query,
     DocumentPredicate document_predicate) const
 {
-    Query query = ParseQuery(policy, raw_query);
+    Query query = ParseQuery(std::execution::seq, raw_query);
     std::vector<Document> matched_documents = FindAllDocuments(policy, query, document_predicate);
     std::sort(policy, matched_documents.begin(), matched_documents.end(),
         [](const Document& lhs, const Document& rhs) {
