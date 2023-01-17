@@ -1,7 +1,5 @@
 #pragma once
-
 #include <vector>
-
 #include "document.h"
 
 // contains documents for a single page
@@ -26,7 +24,6 @@ public:
     size_t size() const {
         return docs_.size();
     }
-
 private:
     std::vector<Document> docs_;
 };

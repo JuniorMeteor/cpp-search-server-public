@@ -1,7 +1,7 @@
 #pragma once
+#include <set>
 #include <string>
 #include <string_view>
-#include <set>
 #include <vector>
 
 template <typename StringContainer>

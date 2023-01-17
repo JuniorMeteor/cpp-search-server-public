@@ -1,8 +1,7 @@
 #pragma once
-#include <vector>
 #include <string>
+#include <vector>
 #include <queue>
-
 #include "document.h"
 #include "search_server.h"
 
@@ -20,7 +19,6 @@ public:
     std::vector<Document> AddFindRequest(const std::string& raw_query, DocumentStatus status);
     std::vector<Document> AddFindRequest(const std::string& raw_query);
     int GetNoResultRequests() const;
-
 private:
     struct QueryResult {
         std::string query;

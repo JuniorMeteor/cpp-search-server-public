@@ -1,21 +1,20 @@
 #pragma once
-#include <string>
-#include <string_view>
-#include <vector>
-#include <tuple>
-#include <set>
-#include <map>
-#include <stdexcept>
 #include <algorithm>
-#include <numeric>
 #include <cmath>
 #include <execution>
-
+#include <map>
+#include <numeric>
+#include <set>
+#include <stdexcept>
+#include <string>
+#include <string_view>
+#include <tuple>
+#include <vector>
 #include "concurent_map.h"
 #include "document.h"
-#include "string_processing.h"
 #include "log_duration.h"
 #include "read_input_functions.h"
+#include "string_processing.h"
 
 const int MAX_RESULT_DOCUMENT_COUNT = 5;
 const double EPSILON = 1e-6;
@@ -181,6 +180,7 @@ std::vector<Document> SearchServer::FindAllDocuments(const ExecutionPolicy& poli
     const int BUCKET_COUNT = 400;
     ConcurrentMap<int, double> document_to_relevance(BUCKET_COUNT);
 
+    // parallel execution causes issues in relevance count !
     const auto func_plus =
         [&](const std::string_view word) {
         if (word_to_id_freq_.count(word) != 0) {
@@ -206,6 +206,8 @@ std::vector<Document> SearchServer::FindAllDocuments(const ExecutionPolicy& poli
     };
     std::for_each(policy, query.minus_words.begin(), query.minus_words.end(), func_minus);
 
+
+    // this is stable version
     //for (const std::string_view& word : query.plus_words) {
     //    if (word_to_id_freq_.count(word) == 0) {
     //        continue;
