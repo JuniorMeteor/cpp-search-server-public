@@ -5,8 +5,8 @@
 #include "process_queries.h"
 #include "search_server.h"
 #include "benchmark_last_lesson.h"
-using namespace std;
-
+//using namespace std;
+//
 //int main() {
 //    SearchServer search_server("and with"s);
 //    int id = 0;

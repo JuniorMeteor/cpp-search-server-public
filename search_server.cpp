@@ -171,21 +171,24 @@ SearchServer::QueryWord SearchServer::ParseQueryWord(std::string_view text) cons
     }
 }
 
-// do not use! it works wrong !!!
+
 SearchServer::Query SearchServer::ParseQuery(std::execution::parallel_policy, const std::string_view& text) const {
-    SearchServer::Query query;
-    if (text.empty()) {
-        return query;
-    }
-    for (const std::string_view& word : SplitIntoWordsView(text)) {
-        SearchServer::QueryWord query_word = SearchServer::ParseQueryWord(word);
-        if (!query_word.is_stop && !query_word.data.empty()) {
-            query_word.is_minus
-                ? query.minus_words.push_back(query_word.data)
-                : query.plus_words.push_back(query_word.data);
-        }
-    }
-    return query;
+    return SearchServer::ParseQuery(std::execution::seq, text);
+
+    // do not use! it works wrong !!!
+    //SearchServer::Query query;
+    //if (text.empty()) {
+    //    return query;
+    //}
+    //for (const std::string_view& word : SplitIntoWordsView(text)) {
+    //    SearchServer::QueryWord query_word = SearchServer::ParseQueryWord(word);
+    //    if (!query_word.is_stop && !query_word.data.empty()) {
+    //        query_word.is_minus
+    //            ? query.minus_words.push_back(query_word.data)
+    //            : query.plus_words.push_back(query_word.data);
+    //    }
+    //}
+    //return query;
 }
 
 SearchServer::Query SearchServer::ParseQuery(std::execution::sequenced_policy, const std::string_view& text) const {

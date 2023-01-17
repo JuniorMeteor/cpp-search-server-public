@@ -10,7 +10,7 @@
 #include <string_view>
 #include <tuple>
 #include <vector>
-#include "concurent_map.h"
+#include "concurrent_map.h"
 #include "document.h"
 #include "log_duration.h"
 #include "read_input_functions.h"
@@ -33,7 +33,7 @@ public:
 
     explicit SearchServer(const std::string_view stop_words_text)
         : SearchServer(SplitIntoWords(std::string(stop_words_text))) {
-    } // some shit
+    }
 
     explicit SearchServer(const std::string stop_words_text)
         : SearchServer(SplitIntoWords(stop_words_text)) {
