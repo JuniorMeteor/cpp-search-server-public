@@ -1,8 +1,8 @@
 Project: CPP SEARCH SERVER
 
-DESCRIPTION
+Desciption
 
-HOW TO RUN?
+How to run?
 
-TO DO LIST
+Future features
 
